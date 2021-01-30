@@ -1,12 +1,20 @@
 <HTML>
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 <script language="javascript" type="text/javascript" src="flot/jquery.flot.js"></script>
-<script src="jquery.ui.touch-punch.min.js"></script>
+
 <!-- <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/smoothness/jquery-ui.css" /> --->
 <!-- <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js"></script>  --->
-
+<!-- <script src="lib/jquery.ui.touch-punch.min.js"></script>  --->
 
 <style>
+#flot_chart_tooltip{
+    position: absolute;
+    display: none;
+    border: 1px solid #ddd;
+    padding: 2px;
+    background-color: #eee;
+    opacity: 0.80;
+}
 #Title1 {
   position:absolute;
   left: 0px;
@@ -77,7 +85,6 @@
   width: 800px;
   height: 650px;
   background-color: #99FF99;
-  text-align: center;
   }
 #BigDiv3 {
   position:absolute;
@@ -90,7 +97,7 @@
 #water {
   position:relative;
   left: 0px;
-  top: 342px;
+  top: 340px;
   width: 800px;
   height: 300px;
   background-color: #3344FF;
@@ -112,35 +119,7 @@
   color: #FFE200;
 }
 
-#graphlabely {
-  writing-mode:tb-rl;
-  -webkit-transform:rotate(270deg);
-  -moz-transform:rotate(270deg);
-  -o-transform: rotate(270deg);
-  -ms-transform:rotate(270deg);
-  transform: rotate(270deg);
-  font-size:14px;
-  position:absolute;
-  left:-10px; 
-  top:250px;
-}
-
-#graphlabelx {
-  position:absolute;
-  font-size:14px;
-  left:400px;
-  top:500px;
-}
-
-#graphclicktext {
-  position:absolute;
-  background-color:#FFCCCC;
-  opacity:0.7;
-  top:20px;
-  font-size:20px;
-}
 </style>
-
 
 <!---Andrew's style--->
 <style>
@@ -302,19 +281,6 @@ td.text-right {
 <div id="BigDiv1">
   <div id="water"></div>
   <div id="background"></div>
-  <script>
-    var bgref = 0;
-    $('#background').click(function(){
-      if (bgref == 1) {
-        $('#background').css('background-image','url("bg2.png")');
-        bgref = 0;
-      }
-      else if (bgref == 0) {
-        $('#background').css('background-image','url("bg3.png")');
-        bgref = 1;
-      }
-    });
-  </script>
   <div id="displaydata"></div>
   <script>
   function changeLevel() {
@@ -323,7 +289,7 @@ td.text-right {
     if (isNaN(data)) {
       $("#displaydata").html("Loading...");
     }else{
-      $("#water").animate({top:342-3*(data)},1000);
+      $("#water").animate({top:340-3*(data)},1000);
       $("#displaydata").html(data + " cm");
     }
   }
@@ -333,6 +299,8 @@ td.text-right {
 
 <div id="BigDiv2" class="DIVcss">
    <script>
+     
+ 
      
      function updateGraph() {
        var rowCount = $('#river tr').length;
@@ -344,48 +312,23 @@ td.text-right {
 //         d1.push([x, data]);
          d1.push([rowCount-i, data]);
        }
-       var options = {
-         grid: {
-           hoverable: true, clickable: true, autoHighlight: true, 
-           points: { show: true, fillColor: "#FFFF77" },
-           markings: [ {color: "#FFFFFF"} ]
-         },
-         xaxis: {show: false}
-       };
-       var plot = $.plot($("#placeholder"), [ d1 ], options);
-/*
-       $("#placeholder").bind("plothover", function (event,pos,item) {
-           var str = "(" + pos.x.toFixed(2) + ", " + pos.y.toFixed(2) + ")";
-           $("#clickdata").text(str);
-           o = plot.pointOffset({ x: pos.x.toFixed(0), y: pos.y.toFixed(0)});
-           $("#graphbar").css("left",o.left+50);
-			 });
-*/
-       $("#graphclicktext").css("visibility","hidden");
-       $("#graphbar").css("visibility","hidden");
-       $("#placeholder").bind("plotclick",function (event,pos,item) {
-         var i = pos.x.toFixed(0);
-         var datax = $("#river").find('tr').eq(rowCount-i).find('td').eq(0).text();
-         var datay = $("#river").find('tr').eq(rowCount-i).find('td').eq(1).text();
-         var str = datay + "<br><span style='font-size:12px;'>" + datax.substr(11,8) + "</span>";
-         o = plot.pointOffset({ x: pos.x.toFixed(0), y: pos.y.toFixed(0)});
-         $("#graphclicktext").css("visibility","visible");
-         $("#graphclicktext").html(str);
-         $("#graphclicktext").css("left",o.left+51);
-         $("#graphclicktext").css("top",o.top-80);
-         $("#graphbar").css("visibility","visible");
-         $("#graphbar").css("left",o.left+50);
-		   });
+       $.plot($("#placeholder"), [ d1 ], {grid: {hoverable: true, clickable: true, autoHighlight: true, 
+       points: { show: true, fillColor: "#FFFF77" },
+       markings: [
+        {xaxis: { from: 0, to: 100 },color: "#FFFFFF"}
+       ]}
+       });
+   
+      
+
 
      }
 
+     
+
      var timer2 = setInterval(updateGraph, 2000);
    </script>
-   <div id="graphlabelx">Time</div>
-   <div id="graphlabely">Sea level (cm)</div>
-   <div id="placeholder" style="position:absolute; left:50px; top:0px; width:700px; height:500px;"></div>
-   <div id="graphbar" style="position:absolute; left:50px; top:7px; width:1px; height:486px; background-color:red; visibility:hidden;"></div>
-   <div id="graphclicktext"></div>
+   <div id="placeholder" style="width:700px; height:500px;"></div>
 </div>
 
 <div id="BigDiv3" class="DIVcss">
@@ -402,7 +345,7 @@ td.text-right {
 
    $pdo= new PDO($dsn, $username, $password, $options);
    //table data from sql riverdata
-   $stmt = $pdo->query("SELECT * FROM riverdata ORDER BY id DESC LIMIT 50 ");
+   $stmt = $pdo->query("SELECT * FROM riverdata ORDER BY id DESC");
    $r = $stmt->fetchALL();   // save result
    foreach($r as $row){
      $i++;
@@ -418,15 +361,13 @@ td.text-right {
       $.getJSON("ajax.php",function(data){
        var x1 = data.rtime;
        var x2 = data.rdata;
-       var old = $("#river").find('tr').eq(0).find('td').eq(0).text();
-       if( x1!= old ){
+       //var old = $("#river").find('tr').eq(0).find('td').eq(0).text();
+      // if( x1!= old ){
          $('#river > tbody > tr:first').before('<tr><td>'+x1+'</td><td>'+x2+' cm</td></tr>');
-         $('#river tr:last').remove();
-         }
+       }
       });
    }
    var timer3 = setInterval(updatetable, 2000);
-   
    </script>
 </div>
 
