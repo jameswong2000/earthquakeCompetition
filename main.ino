@@ -2,6 +2,7 @@
 // for both classes must be in the include path of your project
 #include "I2Cdev.h"
 #include "MPU6050.h"
+#include  <SoftwareSerial.h>
 
 // Arduino Wire library is required if I2Cdev I2CDEV_ARDUINO_WIRE implementation
 // is used in I2Cdev.h
@@ -20,7 +21,7 @@ int16_t ax, ay, az;
 int16_t gx, gy, gz;
 // int16_t Tmp;
 
-
+SoftwareSerial BTSerial(10, 11); // RX | TX
 
 // uncomment "OUTPUT_READABLE_ACCELGYRO" if you want to see a tab-separated
 // list of the accel X/Y/Z and then gyro X/Y/Z values in decimal. Easy to read,
@@ -90,6 +91,12 @@ void setup() {
     Serial.println(calx); 
     delay(1000);
     Serial.println("Done!");
+
+	pinMode(9, OUTPUT);  // this pin will pull the HC-05 pin 34 (key pin) HIGH to switch module to AT mode
+  	digitalWrite(9, HIGH);
+  	Serial.begin(9600);
+  	Serial.println("Enter AT commands:");
+  	BTSerial.begin(38400);  // HC-05 default speed in AT command more
 }
 
 void loop() {
@@ -130,5 +137,12 @@ void loop() {
     acc_x = (ax+calx)/16384*9.8066 ;          //find the acceleration of Z axis
     Serial.print("Acceleration of X axis = "); Serial.println(acc_x);    //print the acceleration of Z axis
     
+	// Keep reading from HC-05 and send to Arduino Serial Monitor
+  	if (BTSerial.available())
+    	Serial.write(BTSerial.read());
+  	// Keep reading from Arduino Serial Monitor and send to HC-05
+  	if (Serial.available())
+    	BTSerial.write(Serial.read());
+
     delay(50);
 }
