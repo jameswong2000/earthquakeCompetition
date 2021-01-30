@@ -35,10 +35,15 @@ int16_t gx, gy, gz;
 
 
 bool blinkState = false;
+
 float total_z = 0;
 float calz = 0;
 float i = 0;
 float acc_z = 0;
+
+float total_x = 0;
+float calx = 0;
+float acc_x = 0;
 
 void setup() {
     // join I2C bus (I2Cdev library doesn't do this automatically)
@@ -51,7 +56,7 @@ void setup() {
     // initialize serial communication
     // (38400 chosen because it works as well at 8MHz as it does at 16MHz, but
     // it's really up to you depending on your project)
-    Serial.begin(115200);
+    Serial.begin(9600);
 
     // initialize device
     Serial.println("Initializing I2C devices...");
@@ -74,12 +79,15 @@ void setup() {
     for(i=0 ; i<200 ; i++) {                          // second calibration
         accelgyro.getAcceleration(&ax, &ay, &az);     //read data                       
         total_z = total_z + az ;
+        total_x = total_x + ax ;
         delay(50);    
        // Serial.print("the value is "); Serial.println(az);
     }
     calz = 16384-total_z/i;      //take average and let it be the value of 1G
+    calx = 16384-total_x/i;      //take average and let it be the value of 1G 
  //   calz = 0;
     Serial.println(calz);
+    Serial.println(calx); 
     delay(1000);
     Serial.println("Done!");
 }
@@ -118,7 +126,9 @@ void loop() {
     //Serial.print("Total Z axis = "); Serial.println(total_z);
     //Serial.print("mean value of Z axis = "); Serial.println(calvalue);
     acc_z = (az+calz)/16384*9.8066 ;          //find the acceleration of Z axis
-   // Serial.print("Acceleration of Z axis = "); Serial.println(acc_z);    //print the acceleration of Z axis
+    Serial.print("Acceleration of Z axis = "); Serial.println(acc_z);    //print the acceleration of Z axis
+    acc_x = (ax+calx)/16384*9.8066 ;          //find the acceleration of Z axis
+    Serial.print("Acceleration of X axis = "); Serial.println(acc_x);    //print the acceleration of Z axis
     
     delay(50);
 }
