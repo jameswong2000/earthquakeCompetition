@@ -12,6 +12,7 @@
 int m_state=0;      //  0 for no earthquake; 1 for light earthquake; 2 for moderate earthquake; 3 for large earthquakes;
 float xy_raw=0;                        // raw value of P wave
 float xy=0;                            //acceleration value of P wave
+float BTtime=0;
 
 /*            BT                 */
 SoftwareSerial BTserial(10, 11);  // RX, TX
@@ -224,11 +225,18 @@ void loop() {
         Serial.write((uint8_t)(gz >> 8)); Serial.write((uint8_t)(gz & 0xFF));
     #endif
     /*              Accelerometer             */
+    
+
+    
+    
       
     running_average();  
     OLED_Display();
-    BT_Display();
- //    delay(50);
+    if (millis()-BTtime>=1000) {
+      BT_Display();
+      BTtime = millis();
+    }
+   // delay(100);
     
 }
 
@@ -268,16 +276,12 @@ void running_average(void) {
     Serial.print("xy= "); Serial.print("\t"); Serial.println(xy);
     Serial.print("xy_raw= "); Serial.print("\t"); Serial.println(xy_raw);
     
-   /*  Magnitude 1   */ 
-  
-  if (xy_raw >=1000 or average_z >=1000 ) {
+  /*  M1  */
+  if ((xy_raw >=300 && xy_raw <1000) || (average_z >=100 && average_z <700)) {
     n=n+1 ;
-  }    else{
-    n=0 ;
-  }
-      if (n>20){
+          if (n>20){
   
-       Serial.println("warning, light earthquake");
+       Serial.println("warning, magnitude 1");
   //     tone(9, NOTE_G3);         //buzzer play
       digitalWrite(9, HIGH);       // buzzer play
        m_state=1;
@@ -288,18 +292,12 @@ void running_average(void) {
        digitalWrite(9, LOW);     //buzzer stop
        m_state=0;
       }
-    /*  Magnitude 1   */
-    
-       /*  Magnitude 2   */ 
+  }    
+      else if ((xy_raw >=1000 && xy_raw <2000) || (average_z >=800 && average_z <1300)) {
+      n=n+1 ;
+          if (n>20){
   
-  if (xy_raw >=2000 or average_z >=2000 ) {
-    n=n+1 ;
-  }    else{
-    n=0 ;
-  }
-      if (n>20){
-  
-       Serial.println("warning, moderate earthquake");
+       Serial.println("warning, magnitude 2");
   //     tone(9, NOTE_G3);         //buzzer play
       digitalWrite(9, HIGH);       // buzzer play
        m_state=2;
@@ -310,95 +308,156 @@ void running_average(void) {
        digitalWrite(9, LOW);     //buzzer stop
        m_state=0;
       }
-    /*  Magnitude 2   */
-    
-           /*  Magnitude 3   */ 
+  }   
+    else  if (xy_raw >=2000 or average_z >=1500 ) {
+      n=n+1 ;
+          if (n>20){
   
-  if (xy_raw >=3000 or average_z >=3000 ) {
-    n=n+1 ;
-  }    else{
-    n=0 ;
-  }
-      if (n>20){
-  
-       Serial.println("warning, high earthquake");
+       Serial.println("warning, magnitude 3");
   //     tone(9, NOTE_G3);         //buzzer play
       digitalWrite(9, HIGH);       // buzzer play
-       m_state=3;
-  
+       m_state=3; 
 }
       else{
    //    noTone(9);                 //buzzer stop
        digitalWrite(9, LOW);     //buzzer stop
        m_state=0;
       }
-    /*  Magnitude 3   */
-    
-    
+  }    else{
+    n=0 ;
+    m_state=0;
+  }
+    /*  M3  */
+  
 }
 
 void OLED_Display(void) {
   // OLED print type of wave
 //  xy= sqrt((acc_x*acc_x) + (acc_y*acc_y));
+  /*  M1  */
+  if (m_state==1){
         if (xy > acc_z) {
-      display.setTextSize(3);
+      display.clearDisplay();
+      display.setTextSize(2);
       display.setTextColor(WHITE);
       display.setCursor(0,0);
       display.println("P wave");
+      display.setTextSize(2);
+      display.println("M1");
       display.display();
-      delay(50);
-      display.clearDisplay();
 
     }
     else {
-      display.setTextSize(3);
+      display.clearDisplay();
+      display.setTextSize(2);
       display.setTextColor(WHITE);
       display.setCursor(0,0);
       display.println("S wave");
+      display.setTextSize(2);
+      display.println("M1");
       display.display();
-      delay(50);
-      display.clearDisplay();
 
     }
-}    
+  }    
+    /*  M1  */
+    /*  M2  */
+    if (m_state==2){
+        if (xy > acc_z) {
+      display.clearDisplay();
+      display.setTextSize(2);
+      display.setTextColor(WHITE);
+      display.setCursor(0,0);
+      display.println("P wave");
+      display.setTextSize(2);
+      display.println("M2");
+      display.display();
+
+    }
+    else {
+      display.clearDisplay();
+      display.setTextSize(2);
+      display.setTextColor(WHITE);
+      display.setCursor(0,0);
+      display.println("S wave");
+      display.setTextSize(2);
+      display.println("M2");
+      display.display();
+
+    }
+  } 
+    /*  M2  */
+    /*  M3  */
+     if (m_state==3){
+        if (xy > acc_z) {
+      display.clearDisplay();
+      display.setTextSize(2);
+      display.setTextColor(WHITE);
+      display.setCursor(0,0);
+      display.println("P wave");
+      display.setTextSize(2);
+      display.println("M3");
+      display.display();
+
+    }
+    else {
+      display.clearDisplay();
+      display.setTextSize(2);
+      display.setTextColor(WHITE);
+      display.setCursor(0,0);
+      display.println("S wave");
+      display.setTextSize(2);
+      display.println("M3");
+      display.display();
+
+    }
+  } 
+  /*  M3  */
+  else if (n<20) {
+      display.clearDisplay();
+      display.setTextSize(3);
+      display.setTextColor(WHITE);
+      display.setCursor(0,0);
+      display.println("Stable");
+      display.display();
+      m_state=0;
+  }
+  
+}
+ 
     
 void BT_Display(void) {
   // OLED print type of wave
- // xy= sqrt((acc_x*acc_x) + (acc_y*acc_y));
-        if (xy > acc_z) {
-      BTserial.print("P wave |");
-      BTserial.print(xy);
-      BTserial.print("|");
-      BTserial.println(acc_z);
-        if(m_state==1) {
-      BTserial.print("|");
-      BTserial.println(1);
+  // xy= sqrt((acc_x*acc_x) + (acc_y*acc_y));
+     if(m_state==0) {
+        BTserial.print("stable");
+        BTserial.print("|");
+        BTserial.print(xy);
+        BTserial.print("|");
+        BTserial.print(acc_z);
+        BTserial.print("|");
+        BTserial.print(m_state);
+        BTserial.print("|");
+    } 
+    else if(m_state!=0) {
+      if (xy > acc_z) {
+        BTserial.print("P");
+        BTserial.print("|");
+        BTserial.print(xy);
+        BTserial.print("|");
+        BTserial.print(acc_z);
+        BTserial.print("|");
+        BTserial.print(m_state);
+        BTserial.print("|");
+      }
+      else {
+        BTserial.print("S");
+        BTserial.print("|");
+        BTserial.print(xy);
+        BTserial.print("|");
+        BTserial.print(acc_z);
+        BTserial.print("|");
+        BTserial.print(m_state);
+        BTserial.print("|");
+      }    
     }
-        if(m_state==2) {
-       BTserial.print("|");
-      BTserial.println(2); 
-        }
-        if(m_state==3) {
-       BTserial.print("|");
-      BTserial.println(3); 
-        }
-    else {
-      BTserial.print("S wave |");
-      BTserial.print(xy);
-      BTserial.print("|");
-      BTserial.println(acc_z);
-      if(m_state==1) {
-      BTserial.print("|");
-      BTserial.println(1);
-    }
-        if(m_state==2) {
-       BTserial.print("|");
-      BTserial.println(2); 
-        }
-        if(m_state==3) {
-       BTserial.print("|");
-      BTserial.println(3); 
-        }
-    }      
-}
 }
