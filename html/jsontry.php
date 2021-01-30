@@ -11,7 +11,7 @@ if ($conn->connect_error) {
      die("Connection failed: " . $conn->connect_error);
 } 
 
-$sql = "SELECT * FROM earthquaketable ORDER BY id DESC LIMIT 0,50";
+$sql = "SELECT * FROM data ORDER BY id DESC LIMIT 0,200";
 $result = $conn->query($sql);
 
     //create an array
