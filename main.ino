@@ -2,36 +2,17 @@
 // for both classes must be in the include path of your project
 #include "I2Cdev.h"
 #include "MPU6050.h"
-#include  <SoftwareSerial.h>
 #include <SPI.h>
-#include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include "Wire.h"
+#include <SoftwareSerial.h>
 
-// Arduino Wire library is required if I2Cdev I2CDEV_ARDUINO_WIRE implementation
-// is used in I2Cdev.h
-#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
-    #include "Wire.h"
-#endif
+/*            BT                 */
+SoftwareSerial BTserial(10, 11);  // RX, TX
+/*            BT                 */
 
-/*OLED*/
-#define OLED_RESET 4
-Adafruit_SSD1306 display(OLED_RESET);
-
-#define NUMFLAKES 10
-#define XPOS 0
-#define YPOS 1
-#define DELTAY 2
-
-
-#define LOGO16_GLCD_HEIGHT 16 
-#define LOGO16_GLCD_WIDTH  16 
-
-
-#if (SSD1306_LCDHEIGHT != 32)
-#error("Height incorrect, please fix Adafruit_SSD1306.h!");
-#endif
-/*OLED*/
+/*            Accelerometer                 */
 
 // class default I2C address is 0x68
 // specific I2C addresses may be passed as a parameter here
@@ -44,7 +25,7 @@ int16_t ax, ay, az;
 int16_t gx, gy, gz;
 // int16_t Tmp;
 
-SoftwareSerial BTSerial(10, 11); // BT: RX | TX
+
 
 // uncomment "OUTPUT_READABLE_ACCELGYRO" if you want to see a tab-separated
 // list of the accel X/Y/Z and then gyro X/Y/Z values in decimal. Easy to read,
@@ -69,48 +50,66 @@ float total_x = 0;
 float calx = 0;
 float acc_x = 0;
 
-void setup() {
-    // join I2C bus (I2Cdev library doesn't do this automatically)
-    #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
-        Wire.begin();
-    #elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
-        Fastwire::setup(400, true);
-    #endif
+/*            Accelerometer                 */
+char bt_data[] = {acc_x, acc_z} ;
 
-    // initialize serial communication
+/*            OLED                */
+#define OLED_RESET 4
+Adafruit_SSD1306 display(OLED_RESET);
+
+#define NUMFLAKES 10
+#define XPOS 0
+#define YPOS 1
+#define DELTAY 2
+
+
+#define LOGO16_GLCD_HEIGHT 16 
+#define LOGO16_GLCD_WIDTH  16 
+
+
+#if (SSD1306_LCDHEIGHT != 32)
+#error("Height incorrect, please fix Adafruit_SSD1306.h!");
+#endif
+/*            OLED                */
+
+void setup() {
+      // initialize serial communication
     // (38400 chosen because it works as well at 8MHz as it does at 16MHz, but
     // it's really up to you depending on your project)
     Serial.begin(9600);
-
-	/*OLED*/
-	// by default, we'll generate the high voltage from the 3.3v line internally! (neat!)
-	display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialize with the I2C addr 0x3C (for the 128x32)
-	// init done
-	  
-	// Show image buffer on the display hardware.
-	// Since the buffer is intialized with an Adafruit splashscreen
-	// internally, this will display the splashscreen.
-	//  display.display();
-	//  delay(2000);
-
-	// Clear the buffer.
-	display.clearDisplay();
-
-	// text display tests
-	display.setTextSize(3);
-	display.setTextColor(WHITE);
-	display.setCursor(0,0);
-	display.println("420");
-	display.setTextSize(1);
-	display.setTextColor(WHITE);
-	display.println("Enahnce Your Calm");
-	display.display();
-	delay(2000);
-	display.clearDisplay();
-	/*OLED*/
-
+    BTserial.begin(9600);
+    
+        /*            OLED                */
+  // by default, we'll generate the high voltage from the 3.3v line internally! (neat!)
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialize with the I2C addr 0x3C (for the 128x32)
+  // init done
+  // Clear the buffer.
+  display.clearDisplay();
+    
+    // show logo
+  display.setTextSize(3);
+  display.setTextColor(WHITE);
+  display.setCursor(0,0);
+  display.println("420");
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.println("Enahnce Your Calm");
+  display.display();
+  delay(2000);
+  display.clearDisplay();
+  
+    /*            OLED                */
+    
+  /*            Accelerometer                 */
+        Wire.begin();
     // initialize device
-    Serial.println("Initializing I2C devices...");
+    Serial.println("Initializing I2C devices...");  
+    display.setTextSize(1);
+    display.setTextColor(WHITE);
+    display.setCursor(0,0);
+    display.println("Initializing");
+    display.display();
+    
     accelgyro.initialize();
     // Set up offsets, first calibration   (by MPU6050_calibration)
     // 49	502	2077	76	-53	29
@@ -126,6 +125,8 @@ void setup() {
     Serial.println("Testing device connections...");
     Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
     Serial.println("Calibrating..");
+    display.println("Calibrating");
+    display.display();
     
     for(i=0 ; i<200 ; i++) {                          // second calibration
         accelgyro.getAcceleration(&ax, &ay, &az);     //read data                       
@@ -141,12 +142,14 @@ void setup() {
     Serial.println(calx); 
     delay(1000);
     Serial.println("Done!");
+    display.println("Done!");
+    display.display();
+    delay(1000);
+    display.clearDisplay();
+    /*            Accelerometer                 */
+    
 
-	pinMode(9, OUTPUT);  // this pin will pull the HC-05 pin 34 (key pin) HIGH to switch module to AT mode
-  	digitalWrite(9, HIGH);
-  	Serial.begin(9600);
-  	Serial.println("Enter AT commands:");
-  	BTSerial.begin(38400);  // HC-05 default speed in AT command more
+    
 }
 
 void loop() {
@@ -180,19 +183,74 @@ void loop() {
         Serial.write((uint8_t)(gy >> 8)); Serial.write((uint8_t)(gy & 0xFF));
         Serial.write((uint8_t)(gz >> 8)); Serial.write((uint8_t)(gz & 0xFF));
     #endif
+    acc_x = (ax+calx)/16384*9.8066 ;          //find the acceleration of Z axis
+    Serial.print("Acceleration of X axis = "); Serial.println(acc_x);    //print the acceleration of Z axis
+ //   BTserial.print("Acceleration of X axis = "); BTserial.println(acc_x);    //print the acceleration of Z axis
     //Serial.print("Total Z axis = "); Serial.println(total_z);
     //Serial.print("mean value of Z axis = "); Serial.println(calvalue);
     acc_z = (az+calz)/16384*9.8066 ;          //find the acceleration of Z axis
     Serial.print("Acceleration of Z axis = "); Serial.println(acc_z);    //print the acceleration of Z axis
-    acc_x = (ax+calx)/16384*9.8066 ;          //find the acceleration of Z axis
-    Serial.print("Acceleration of X axis = "); Serial.println(acc_x);    //print the acceleration of Z axis
-    
-	// Keep reading from HC-05 and send to Arduino Serial Monitor
-  	if (BTSerial.available())
-    	Serial.write(BTSerial.read());
-  	// Keep reading from Arduino Serial Monitor and send to HC-05
-  	if (Serial.available())
-    	BTSerial.write(Serial.read());
+ //   BTserial.print("Acceleration of Z axis = "); BTserial.println(acc_z);    //print the acceleration of Z axis
 
-    delay(50);
+    OLED_Display();
+    BT_Display();
+ //   delay(50);
+      if (acc_x > acc_z) {
+      Serial.print("P wave | ");        
+      Serial.print(acc_x);
+      Serial.print(" | ");
+      Serial.println(acc_z);
+    }
+    else {
+      Serial.print("S wave |");
+      Serial.print(acc_x);
+      Serial.print(" | ");
+      Serial.println(acc_z);
+      
+    }    
+   
+    
+
 }
+
+
+void OLED_Display(void) {
+  // OLED print type of wave
+        if (acc_x > acc_z) {
+      display.setTextSize(3);
+      display.setTextColor(WHITE);
+      display.setCursor(0,0);
+      display.println("P wave");
+      display.display();
+      delay(50);
+      display.clearDisplay();
+
+    }
+    else {
+      display.setTextSize(3);
+      display.setTextColor(WHITE);
+      display.setCursor(0,0);
+      display.println("S wave");
+      display.display();
+      delay(50);
+      display.clearDisplay();
+
+    }
+}    
+    
+void BT_Display(void) {
+  // OLED print type of wave
+        if (acc_x > acc_z) {
+      BTserial.print("P wave |");
+      BTserial.print(acc_x);
+      BTserial.print("|");
+      BTserial.println(acc_z);
+    }
+    else {
+      BTserial.print("S wave |");
+      BTserial.print(acc_x);
+      BTserial.print("|");
+      BTserial.println(acc_z);
+    }      
+}
+  
