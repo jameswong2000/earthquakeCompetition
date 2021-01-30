@@ -1,0 +1,32 @@
+<html>
+<table class="RIVERLEVEL" id="jsondata">
+<thead>
+<th>id</th>
+<th>rtime</th>
+<th>rdata</th>
+</thead>
+<tbody>
+</tbody>
+</table>
+</div>
+
+<script type="text/javascript" src="jquery.js" >
+
+$(document).ready(function(){
+var url="getjson.php";
+$("#jsondata tbody").html("");
+$.getJSON(url,function(data){
+$.each(data.users, function(i,user){
+var newRow =
+"<tr>"
++"<td>"+user.id+"</td>"
++"<td>"+user.rtime+"</td>"
++"<td>"+user.rdata+"</td>"
++"</tr>" ;
+$(newRow).appendTo("#jsondata tbody");
+});
+});
+});
+
+</script>
+</html>
