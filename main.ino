@@ -277,7 +277,7 @@ void running_average(void) {
     Serial.print("xy_raw= "); Serial.print("\t"); Serial.println(xy_raw);
     
   /*  M1  */
-  if ((xy_raw >=300 && xy_raw <1000) || (average_z >=100 && average_z <700)) {
+  if ((xy_raw >=300 && xy_raw <1000) || (average_z >=150 && average_z <300)) {
     n=n+1 ;
           if (n>20){
   
@@ -293,7 +293,7 @@ void running_average(void) {
        m_state=0;
       }
   }    
-      else if ((xy_raw >=1000 && xy_raw <2000) || (average_z >=800 && average_z <1300)) {
+      else if ((xy_raw >=1000 && xy_raw <3000) || (average_z >=350 && average_z <600)) {
       n=n+1 ;
           if (n>20){
   
@@ -309,7 +309,7 @@ void running_average(void) {
        m_state=0;
       }
   }   
-    else  if (xy_raw >=2000 or average_z >=1500 ) {
+    else  if (xy_raw >=1000 or average_z >=600 ) {
       n=n+1 ;
           if (n>20){
   
