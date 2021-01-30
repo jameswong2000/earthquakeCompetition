@@ -1,22 +1,22 @@
 <?php
 
    
-  $db = mysql_connect("localhost","spkcriver","river123");
+  $db = mysql_connect("wongwongjames.noip.me","earthquake","420");
   if (!$db) {
     die('Could not connect to db: ' . mysql_error());
     }
 
-    mysql_select_db("spkcriver",$db);
+    mysql_select_db("earthquake",$db);
 
-    $result = mysql_query("select * from riverdata", $db);
+    $result = mysql_query("select * from earthquake", $db);
    
     
     $json_response = array();
     
     while ($row = mysql_fetch_array($result, MYSQL_ASSOC)) {
         $row_array['id'] = $row['id'];
-        $row_array['rtime'] = $row['rtime'];
-        $row_array['rdata'] = $row['rdata'];
+        $row_array['time'] = $row['time'];
+        $row_array['magnitude'] = $row['magnitude'];
 
         //push the values in the array
         array_push($json_response,$row_array);
