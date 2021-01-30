@@ -18,6 +18,7 @@ MPU6050 accelgyro;
 
 int16_t ax, ay, az;
 int16_t gx, gy, gz;
+// int16_t Tmp;
 
 
 
@@ -35,7 +36,7 @@ int16_t gx, gy, gz;
 
 bool blinkState = false;
 float total_z = 0;
-float calvalue = 0;
+float calz = 0;
 float i = 0;
 float acc_z = 0;
 
@@ -55,30 +56,38 @@ void setup() {
     // initialize device
     Serial.println("Initializing I2C devices...");
     accelgyro.initialize();
-    // Set up offsets, first calibration
-    accelgyro.setXAccelOffset(59);
-    accelgyro.setYAccelOffset(494);
-    accelgyro.setZAccelOffset(2058);
-    accelgyro.setXGyroOffset(75);
-    accelgyro.setYGyroOffset(-52);
-    accelgyro.setZGyroOffset(34);
+    // Set up offsets, first calibration   (by MPU6050_calibration)
+    // 49	502	2077	76	-53	29
+    accelgyro.setXAccelOffset(49);
+    accelgyro.setYAccelOffset(502);
+    accelgyro.setZAccelOffset(2077);
+    accelgyro.setXGyroOffset(76);
+    accelgyro.setYGyroOffset(-53);
+    accelgyro.setZGyroOffset(29);
+
 
     // verify connection
     Serial.println("Testing device connections...");
     Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
+    Serial.println("Calibrating..");
     
-    for(i=0 ; i<10 ; i++) {                          // second calibration
+    for(i=0 ; i<200 ; i++) {                          // second calibration
         accelgyro.getAcceleration(&ax, &ay, &az);     //read data                       
-        total_z = total_z + az ;    
+        total_z = total_z + az ;
+        delay(50);    
        // Serial.print("the value is "); Serial.println(az);
     }
-    calvalue = total_z / i ;      //take average and let it be the value of 1G
-
+    calz = 16384-total_z/i;      //take average and let it be the value of 1G
+ //   calz = 0;
+    Serial.println(calz);
+    delay(1000);
+    Serial.println("Done!");
 }
 
 void loop() {
     // read raw accel/gyro measurements from device
     accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+   // Tmp=Wire.read()<<8|Wire.read();  // 0x41 (TEMP_OUT_H) & 0x42 (TEMP_OUT_L)
 
     // these methods (and a few others) are also available
     //accelgyro.getAcceleration(&ax, &ay, &az);
@@ -89,10 +98,13 @@ void loop() {
         Serial.print("a/g:\t");
         Serial.print(ax); Serial.print("\t");
         Serial.print(ay); Serial.print("\t");
-        Serial.print(az); Serial.print("\t");
+        Serial.print(az+calz); Serial.print("\t");
         Serial.print(gx); Serial.print("\t");
         Serial.print(gy); Serial.print("\t");
         Serial.println(gz);
+   //     Serial.print(" | Tmp = "); Serial.println((Tmp/340.00+36.53)*10000);  //equation for temperature in degrees C from datasheet
+        
+        
     #endif
 
     #ifdef OUTPUT_BINARY_ACCELGYRO
@@ -105,8 +117,8 @@ void loop() {
     #endif
     //Serial.print("Total Z axis = "); Serial.println(total_z);
     //Serial.print("mean value of Z axis = "); Serial.println(calvalue);
-    acc_z = (az-calvalue)/16384*9.8066 ;          //find the acceleration of Z axis
-    Serial.print("Acceleration of Z axis = "); Serial.println(acc_z);    //print the acceleration of Z axis
+    acc_z = (az+calz)/16384*9.8066 ;          //find the acceleration of Z axis
+   // Serial.print("Acceleration of Z axis = "); Serial.println(acc_z);    //print the acceleration of Z axis
     
     delay(50);
 }
