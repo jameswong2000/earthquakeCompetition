@@ -267,6 +267,8 @@ void running_average(void) {
     xy= sqrt((acc_x*acc_x) + (acc_y*acc_y));
     Serial.print("xy= "); Serial.print("\t"); Serial.println(xy);
     Serial.print("xy_raw= "); Serial.print("\t"); Serial.println(xy_raw);
+    
+   /*  Magnitude 1   */ 
   
   if (xy_raw >=1000 or average_z >=1000 ) {
     n=n+1 ;
@@ -275,7 +277,7 @@ void running_average(void) {
   }
       if (n>20){
   
-       Serial.println("warning");
+       Serial.println("warning, light earthquake");
   //     tone(9, NOTE_G3);         //buzzer play
       digitalWrite(9, HIGH);       // buzzer play
        m_state=1;
@@ -286,6 +288,53 @@ void running_average(void) {
        digitalWrite(9, LOW);     //buzzer stop
        m_state=0;
       }
+    /*  Magnitude 1   */
+    
+       /*  Magnitude 2   */ 
+  
+  if (xy_raw >=2000 or average_z >=2000 ) {
+    n=n+1 ;
+  }    else{
+    n=0 ;
+  }
+      if (n>20){
+  
+       Serial.println("warning, moderate earthquake");
+  //     tone(9, NOTE_G3);         //buzzer play
+      digitalWrite(9, HIGH);       // buzzer play
+       m_state=2;
+  
+}
+      else{
+   //    noTone(9);                 //buzzer stop
+       digitalWrite(9, LOW);     //buzzer stop
+       m_state=0;
+      }
+    /*  Magnitude 2   */
+    
+           /*  Magnitude 3   */ 
+  
+  if (xy_raw >=3000 or average_z >=3000 ) {
+    n=n+1 ;
+  }    else{
+    n=0 ;
+  }
+      if (n>20){
+  
+       Serial.println("warning, high earthquake");
+  //     tone(9, NOTE_G3);         //buzzer play
+      digitalWrite(9, HIGH);       // buzzer play
+       m_state=3;
+  
+}
+      else{
+   //    noTone(9);                 //buzzer stop
+       digitalWrite(9, LOW);     //buzzer stop
+       m_state=0;
+      }
+    /*  Magnitude 3   */
+    
+    
 }
 
 void OLED_Display(void) {
@@ -321,11 +370,35 @@ void BT_Display(void) {
       BTserial.print(xy);
       BTserial.print("|");
       BTserial.println(acc_z);
+        if(m_state==1) {
+      BTserial.print("|");
+      BTserial.println(1);
     }
+        if(m_state==2) {
+       BTserial.print("|");
+      BTserial.println(2); 
+        }
+        if(m_state==3) {
+       BTserial.print("|");
+      BTserial.println(3); 
+        }
     else {
       BTserial.print("S wave |");
       BTserial.print(xy);
       BTserial.print("|");
       BTserial.println(acc_z);
+      if(m_state==1) {
+      BTserial.print("|");
+      BTserial.println(1);
+    }
+        if(m_state==2) {
+       BTserial.print("|");
+      BTserial.println(2); 
+        }
+        if(m_state==3) {
+       BTserial.print("|");
+      BTserial.println(3); 
+        }
     }      
+}
 }
